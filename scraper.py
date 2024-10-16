@@ -15,19 +15,6 @@ print("waiting")
 time.sleep(10)
 
 soup = bs4(driver.page_source, 'lxml')
-# listings = soup.find('div', class_= "col-md-9 search-listing pull-right")
-# cars1 = listings.find_all('ul', class_ = "list-unstyled search-results search-results-mid next-prev car-search-results")
-# for car in cars1:
-#     name = car.find('a', class_ = "car-name ad-detail-path")['title']
-#     print(name)
-
-
-# WORKS
-# listings = soup.find_all('a', class_ = "car-name ad-detail-path")
-# for index, car in enumerate(listings):
-#     name = car['title']
-#     print(str(index) + f'] - {name}')
-
 listings = soup.find_all('div', class_ = "well search-list clearfix ad-container page-")
 
 for index, car in enumerate(listings):
