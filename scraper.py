@@ -10,7 +10,9 @@ import time
 
 def findCars(soup = bs4) -> int:
     count = 0
-    listings = soup.find_all('div', class_ = "well search-list clearfix ad-container page-")
+    listings = soup.find_all('li', class_ = "classified-listing featured-listing managed-pw") + soup.find_all('li', class_ = "classified-listing featured-listing") + soup.find_all('li', class_ = "classified-listing")
+    # print(listings)
+    # print("BRUB BRRUH BRUH BUHBR BRUH BRUH BURB BURBB BUHRB UBRB")
 
     for index, car in enumerate(listings):
         name = car.find('a', class_ = "car-name ad-detail-path")['title']
@@ -26,7 +28,7 @@ def findCars(soup = bs4) -> int:
         info = car.find('ul', class_ = "list-unstyled search-vehicle-info-2 fs13").text.strip()
         bits = info.split("\n")
 
-        print(str(index) + f'] - {name}')
+        print(str(index+1) + f'] - {name}')
         print(f'price: {price.replace(',', "")}')
         print(f'city: {city}')
         print(f'production year: {bits[0]}')
@@ -40,37 +42,31 @@ def findCars(soup = bs4) -> int:
     print(f"Total cars in the Page: {count}\n\n")
     return count
 
-
-# to-do: fix this. need to loop through pages using the 'next page' button in each page.
 def scrapePages(link = str) -> int:
-    error = None
-    page_num = 1
     url = link
     total = 0
 
-    driver =  webdriver.Edge()
-    driver.get(url)
-    print("waiting for page to completely load.")
-    time.sleep(10)
-
-    url = link + f'?page={page_num}'
-    while error == None:
-        soup = bs4(driver.page_source, 'lxml')
-        error = soup.find('div', class_ = "row error-block-head")
-        print(error) # prints 'None' if not found, meaning not error page
-        total += findCars(soup)
-
-        page_num += 1
-        url = url.replace(f'?page={page_num - 1}', f'?page={page_num}')
+    while True:
         driver =  webdriver.Edge()
         driver.get(url)
         print("waiting for page to completely load.")
         time.sleep(10)
-    return total
+
+        soup = bs4(driver.page_source, 'lxml')
+        next_page = soup.find('li', class_ = "next_page")
+        # print(next_page) # prints 'None' if no next_page
+        total += findCars(soup)
+
+        if next_page == None:
+            print("No more listings available!")
+            return total
+        else:
+            url = 'https://www.pakwheels.com' + next_page.a['href']
+            print(url)
 
 if __name__ == '__main__':
-    total_cars = scrapePages('https://www.pakwheels.com/used-cars/toyota-karachi/557?transmission=automatic&certified=pakwheels-certified')
-    print(f'The total number of cars for your criteria right now are: {total_cars}')
+    total_cars = scrapePages('https://www.pakwheels.com/used-cars/search/-/ct_taxila/')
+    print(f'The total number of cars for your search criteria right now are: {total_cars}')
 
 # url = 'https://www.pakwheels.com/used-cars/search/-/?page=1'
 # driver =  webdriver.Edge()
