@@ -7,12 +7,15 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import time
+from typing import List
+import csv
 
-def findCars(soup = bs4) -> int:
+def findCars(soup = bs4) -> List[str]:
     count = 0
     listings = soup.find_all('li', class_ = "classified-listing featured-listing managed-pw") + soup.find_all('li', class_ = "classified-listing featured-listing") + soup.find_all('li', class_ = "classified-listing")
-    # print(listings)
-    # print("BRUB BRRUH BRUH BUHBR BRUH BRUH BURB BURBB BUHRB UBRB")
+    data = [
+        ['name', 'price', 'city', 'production_year', 'km_driven', 'engine_type', 'horsepower', 'transmission', 'link']
+    ]
 
     for index, car in enumerate(listings):
         name = car.find('a', class_ = "car-name ad-detail-path")['title']
@@ -28,23 +31,38 @@ def findCars(soup = bs4) -> int:
         info = car.find('ul', class_ = "list-unstyled search-vehicle-info-2 fs13").text.strip()
         bits = info.split("\n")
 
-        print(str(index+1) + f'] - {name}')
-        print(f'price: {price.replace(',', "")}')
-        print(f'city: {city}')
-        print(f'production year: {bits[0]}')
-        print(f'driven (kilometers): {bits[1].replace('km', "").replace(',', "").strip()}')
-        print(f'engine type: {bits[2]}')
-        print(f'horsepower (CC): {bits[3].replace('cc', "")}')
-        print(f'transmission: {bits[4]}')
-        print(f'link: pakwheels.com{link}\n')
+        # print(str(index+1) + f'] - {name}')
+        # print(f'price: {price.replace(',', "")}')
+        # print(f'city: {city}')
+        # print(f'production year: {bits[0]}')
+        # print(f'driven (kilometers): {bits[1].replace('km', "").replace(',', "").strip()}')
+        # print(f'engine type: {bits[2]}')
+        # print(f'horsepower (CC): {bits[3].replace('cc', "")}')
+        # print(f'transmission: {bits[4]}')
+        # print(f'link: pakwheels.com{link}\n')
+
+        tuple = ['', '', '', '', '', '', '', '', '']
+        tuple[0] = name
+        tuple[1] = price.replace(',', "")
+        tuple[2] =  city
+        tuple[3] =  bits[0]
+        tuple[4] =  bits[1].replace('km', "").replace(',', "").strip()
+        tuple[5] =  bits[2]
+        tuple[6] = bits[3].replace('cc', "")
+        tuple[7] =  bits[4]
+        tuple[8] =  'pakwheels.com' + link
+        data.append(tuple)
+        # print(tuple)
         count += 1
     print("Listings from Page Completed!")
     print(f"Total cars in the Page: {count}\n\n")
-    return count
+    # print(data)
+    return data
 
 def scrapePages(link = str) -> int:
     url = link
     total = 0
+    data = []
 
     while True:
         driver =  webdriver.Edge()
@@ -55,18 +73,29 @@ def scrapePages(link = str) -> int:
         soup = bs4(driver.page_source, 'lxml')
         next_page = soup.find('li', class_ = "next_page")
         # print(next_page) # prints 'None' if no next_page
-        total += findCars(soup)
+        search = soup.find('div', class_ = "used-car-search-results").h1.text
+        data = findCars(soup)
 
+        if total == 0: # creating new file
+            with open(f'files/{search.replace(' ', '_')}.csv', mode = 'w', newline = '') as file:
+                writer = csv.writer(file)
+                writer.writerows(data)
+        else:
+            with open(f'files/{search.replace(' ', '_')}.csv', mode = 'a', newline = '') as file:
+                writer = csv.writer(file)
+                writer.writerows(data)
+
+        total += len(data)
         if next_page == None:
             print("No more listings available!")
             return total
         else:
             url = 'https://www.pakwheels.com' + next_page.a['href']
-            print(url)
+            # print(url)
 
 if __name__ == '__main__':
-    total_cars = scrapePages('https://www.pakwheels.com/used-cars/search/-/ct_taxila/')
-    print(f'The total number of cars for your search criteria right now are: {total_cars}')
+    total_cars = scrapePages('https://www.pakwheels.com/used-cars/toyota-karachi/557?transmission=automatic&certified=pakwheels-certified')
+    print(f'The total number of cars for your search criteria right now are: {total_cars - 1}')
 
 # url = 'https://www.pakwheels.com/used-cars/search/-/?page=1'
 # driver =  webdriver.Edge()
