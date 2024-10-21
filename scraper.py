@@ -1,18 +1,20 @@
 # bismillah
 # started project on 12-04-1446/16-10-2024
+# project ended on 18-04-1446/21-10-2024
+# alhumdulillah
 
 from bs4 import BeautifulSoup as bs4
 from selenium import webdriver
-from pathlib import Path
-import pandas as pd
-import numpy as np
 import time
 from typing import List
 import csv
 
+# called by scrapePages()
 def findCars(soup = bs4) -> List[str]:
     count = 0
     listings = soup.find_all('li', class_ = "classified-listing featured-listing managed-pw") + soup.find_all('li', class_ = "classified-listing featured-listing") + soup.find_all('li', class_ = "classified-listing")
+    # I found three types of listings, perhaps they may be more types.
+
     data = [
         ['name', 'price', 'city', 'production_year', 'km_driven', 'engine_type', 'horsepower', 'transmission', 'link']
     ]
@@ -29,17 +31,7 @@ def findCars(soup = bs4) -> List[str]:
             price = price.replace(' crore', '000000')
         city = car.find('ul', class_ = "list-unstyled search-vehicle-info fs13").text.strip()
         info = car.find('ul', class_ = "list-unstyled search-vehicle-info-2 fs13").text.strip()
-        bits = info.split("\n")
-
-        # print(str(index+1) + f'] - {name}')
-        # print(f'price: {price.replace(',', "")}')
-        # print(f'city: {city}')
-        # print(f'production year: {bits[0]}')
-        # print(f'driven (kilometers): {bits[1].replace('km', "").replace(',', "").strip()}')
-        # print(f'engine type: {bits[2]}')
-        # print(f'horsepower (CC): {bits[3].replace('cc', "")}')
-        # print(f'transmission: {bits[4]}')
-        # print(f'link: pakwheels.com{link}\n')
+        bits = info.split("\n") # prod year, km_driven, engine_type, horsepower, transmission
 
         tuple = ['', '', '', '', '', '', '', '', '']
         tuple[0] = name
@@ -52,11 +44,9 @@ def findCars(soup = bs4) -> List[str]:
         tuple[7] =  bits[4]
         tuple[8] =  'pakwheels.com' + link
         data.append(tuple)
-        # print(tuple)
         count += 1
     print("Listings from Page Completed!")
     print(f"Total cars in the Page: {count}\n\n")
-    # print(data)
     return data
 
 def scrapePages(link = str) -> int:
@@ -80,7 +70,7 @@ def scrapePages(link = str) -> int:
             with open(f'files/{search.replace(' ', '_')}.csv', mode = 'w', newline = '') as file:
                 writer = csv.writer(file)
                 writer.writerows(data)
-        else:
+        else: # file already exists, need to append it
             with open(f'files/{search.replace(' ', '_')}.csv', mode = 'a', newline = '') as file:
                 writer = csv.writer(file)
                 writer.writerows(data)
@@ -94,15 +84,5 @@ def scrapePages(link = str) -> int:
             # print(url)
 
 if __name__ == '__main__':
-    total_cars = scrapePages('https://www.pakwheels.com/used-cars/toyota-karachi/557?transmission=automatic&certified=pakwheels-certified')
+    total_cars = scrapePages('https://www.pakwheels.com/used-cars/search/-/mk_toyota/tr_automatic/cert_pakwheels-certified/')
     print(f'The total number of cars for your search criteria right now are: {total_cars - 1}')
-
-# url = 'https://www.pakwheels.com/used-cars/search/-/?page=1'
-# driver =  webdriver.Edge()
-# driver.get(url)
-
-# soup = bs4(driver.page_source, 'lxml')
-# error = soup.find('div', class_ = "row error-block-head")
-# print(error) # prints 'None' if not found, meaning not error page
-
-# 'div', class = "row error-block-head"
