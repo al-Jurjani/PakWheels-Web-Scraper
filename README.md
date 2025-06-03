@@ -43,8 +43,8 @@ Before running the scraper, ensure you have the following installed:
 
 1.  **Clone the repository (or download the files):**
     ```bash
-    git clone <your-repo-url>
-    cd <your-repo-directory>
+    git clone https://github.com/al-Jurjani/PakWheels-Web-Scraper
+    cd PakWheels-Web-Scraper
     ```
 2.  **Create a `files/` directory:** The script saves CSV files into a subdirectory named `files`. Create this directory in the same location as `scraper.py` if it doesn't exist:
     ```bash
